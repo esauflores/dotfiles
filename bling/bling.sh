@@ -28,7 +28,7 @@ HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/home/linuxbrew/.linuxbrew}"
 # Atuin allows these flags: "--disable-up-arrow" and/or "--disable-ctrl-r"
 ATUIN_INIT_FLAGS=${ATUIN_INIT_FLAGS:-""}
 
-if [ "$(basename "$0")" = "bash" ]; then
+if [ -n "$BASH_VERSION" ]; then 
     [ -f "/etc/profile.d/bash-preexec.sh" ] && . "/etc/profile.d/bash-preexec.sh"
     [ -f "/usr/share/bash-prexec" ] && . "/usr/share/bash-prexec"
     [ -f "/usr/share/bash-prexec.sh" ] && . "/usr/share/bash-prexec.sh"
@@ -36,7 +36,7 @@ if [ "$(basename "$0")" = "bash" ]; then
     [ "$(command -v starship)" ] && eval "$(starship init bash)"
     [ "$(command -v atuin)" ] && eval "$(atuin init bash ${ATUIN_INIT_FLAGS})"
     [ "$(command -v zoxide)" ] && eval "$(zoxide init bash)"
-elif [ "$(basename "$0")" = "zsh" ]; then
+elif [ -n "$ZSH_VERSION" ]; then 
     [ "$(command -v starship)" ] && eval "$(starship init zsh)"
     [ "$(command -v atuin)" ] && eval "$(atuin init zsh ${ATUIN_INIT_FLAGS})"
     [ "$(command -v zoxide)" ] && eval "$(zoxide init zsh)"
