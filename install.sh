@@ -149,36 +149,36 @@ if ! command -v brew &> /dev/null; then
     fi
     
     print_success "Homebrew installed successfully!"
-
-    print_separator
-    print_step "Installing essential packages..."
-    
-    # Verify brew is now available
-    if ! command -v brew &> /dev/null; then
-        print_error "Failed to setup Homebrew PATH. Please restart your terminal and re-run this script."
-        exit 1
-    fi
-
-    packages=(
-        "atuin" "bat" "bash-preexec" "chezmoi" "direnv" 
-        "dysk" "eza" "fd" "gh" "glab" "rg" "starship" 
-        "shellcheck" "stress-ng" "tealdeer" "trash-cli" 
-        "television" "uutils-coreutils" "ugrep" "yq" "zoxide"
-    )
-    
-    total=${#packages[@]}
-    current=0
-    
-    for package in "${packages[@]}"; do
-        current=$((current + 1))
-        echo -e "${CYAN}[$current/$total]${NC} Installing ${YELLOW}$package${NC}..."
-        brew install "$package" > /dev/null 2>&1
-    done
-    
-    print_success "All packages installed successfully!"
 else
     print_info "Homebrew is already installed."
 fi
+
+print_separator
+print_step "Installing essential packages..."
+
+# Verify brew is now available
+if ! command -v brew &> /dev/null; then
+    print_error "Failed to setup Homebrew PATH. Please restart your terminal and re-run this script."
+    exit 1
+fi
+
+packages=(
+    "atuin" "bat" "bash-preexec" "chezmoi" "direnv" 
+    "dysk" "eza" "fd" "gh" "glab" "rg" "starship" 
+    "shellcheck" "stress-ng" "tealdeer" "trash-cli" 
+    "television" "uutils-coreutils" "ugrep" "yq" "zoxide"
+)
+
+total=${#packages[@]}
+current=0
+
+for package in "${packages[@]}"; do
+    current=$((current + 1))
+    echo -e "${CYAN}[$current/$total]${NC} Installing ${YELLOW}$package${NC}..."
+    brew install "$package" > /dev/null 2>&1
+done
+
+print_success "All packages installed successfully!"
 
 print_separator
 print_step "Checking Zsh installation..."
@@ -194,36 +194,36 @@ print_separator
 print_step "Checking Oh My Zsh installation..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     print_step "Installing Oh My Zsh..."
-    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" > /dev/null 2>&1
+    RUNZSH=yes CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" > /dev/null 2>&1
     print_success "Oh My Zsh installed successfully!"
-
-    print_separator
-    print_step "Installing Oh My Zsh plugins..."
-    
-    plugins=(
-        "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
-        "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
-        "zsh-bat:https://github.com/fdellwing/zsh-bat.git"
-    )
-    
-    for plugin_info in "${plugins[@]}"; do
-        plugin_name=${plugin_info%%:*}
-        plugin_url=${plugin_info#*:}
-        
-        if [ ! -d "$ZSH_CUSTOM_DIR/plugins/$plugin_name" ]; then
-            echo -e "  ${CYAN}▶${NC} Installing ${YELLOW}$plugin_name${NC}..."
-            git clone "$plugin_url" "$ZSH_CUSTOM_DIR/plugins/$plugin_name" > /dev/null 2>&1
-            print_success "  $plugin_name installed!"
-        else
-            print_info "  $plugin_name is already installed."
-        fi
-    done
-    
-
-    print_success "All plugins installed successfully!"
 else
     print_info "Oh My Zsh is already installed."
 fi
+
+
+print_separator
+print_step "Installing Oh My Zsh plugins..."
+
+plugins=(
+    "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
+    "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    "zsh-bat:https://github.com/fdellwing/zsh-bat.git"
+)
+
+for plugin_info in "${plugins[@]}"; do
+    plugin_name=${plugin_info%%:*}
+    plugin_url=${plugin_info#*:}
+    
+    if [ ! -d "$ZSH_CUSTOM_DIR/plugins/$plugin_name" ]; then
+        echo -e "  ${CYAN}▶${NC} Installing ${YELLOW}$plugin_name${NC}..."
+        git clone "$plugin_url" "$ZSH_CUSTOM_DIR/plugins/$plugin_name" > /dev/null 2>&1
+        print_success "  $plugin_name installed!"
+    else
+        print_info "  $plugin_name is already installed."
+    fi
+done
+    
+print_success "All plugins installed successfully!"
 
 
 # copy the custom dotfiles to the home directory
