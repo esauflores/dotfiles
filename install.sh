@@ -281,8 +281,8 @@ print_separator
 
 print_step "Installing Oh My Zsh plugins..."
 
-# "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
 plugins=(
+    "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
     "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
     "zsh-bat:https://github.com/fdellwing/zsh-bat.git"
 )
