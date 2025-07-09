@@ -1,5 +1,8 @@
 #!/bin/bash
-# set -e
+set -e
+
+# Verbose option - set to true to see installation outputs
+VERBOSE=${VERBOSE:-false}
 
 # Colors for better output
 RED='\033[0;31m'
@@ -11,6 +14,15 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Helper function for conditional output redirection
+run_command() {
+    if [ "$VERBOSE" = "true" ]; then
+        "$@"
+    else
+        "$@" > /dev/null 2>&1
+    fi
+}
 
 # Helper functions for better UI
 print_box() {
@@ -88,9 +100,9 @@ install_essential_packages() {
         "ubuntu")
             print_step "Installing essential packages for Ubuntu/Debian..."
             if ! dpkg -l | grep -q build-essential; then
-                sudo apt update > /dev/null 2>&1
-                sudo apt install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release > /dev/null 2>&1
-                sudo apt install -y zsh > /dev/null 2>&1
+                run_command sudo apt update
+                run_command sudo apt install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+                run_command sudo apt install -y zsh
                 print_success "Essential packages installed successfully!"
             else
                 print_info "Essential packages are already installed."
@@ -99,9 +111,9 @@ install_essential_packages() {
         "fedora")
             print_step "Installing essential packages for Fedora/RHEL..."
             if ! rpm -qa | grep -q gcc; then
-                sudo dnf groupinstall -y "Development Tools" > /dev/null 2>&1
-                sudo dnf install -y git curl wget which > /dev/null 2>&1
-                sudo dnf install -y zsh > /dev/null 2>&1
+                run_command sudo dnf groupinstall -y "Development Tools"
+                run_command sudo dnf install -y git curl wget which
+                run_command sudo dnf install -y zsh
                 print_success "Essential packages installed successfully!"
             else
                 print_info "Essential packages are already installed."
@@ -148,7 +160,7 @@ ZSH_CUSTOM_DIR=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
 print_step "Checking Homebrew installation..."
 if ! command -v brew &> /dev/null; then
     print_step "Installing Homebrew..."
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    NONINTERACTIVE=1 run_command /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
     # Set up Homebrew PATH based on OS
     if [[ "$OS" == "macos" ]]; then
@@ -183,7 +195,7 @@ packages=(
 print_step "Installing ${#packages[@]} packages..."
 echo -e "${CYAN}Installing:${NC} ${YELLOW}${packages[*]}${NC}"
 
-if brew install "${packages[@]}" > /dev/null 2>&1; then
+if run_command brew install "${packages[@]}"; then
     print_success "All packages installed successfully!"
 else
     print_error "Some packages failed to install. Trying individual installation..."
@@ -192,7 +204,7 @@ else
     for package in "${packages[@]}"; do
         if ! brew list "$package" &>/dev/null; then
             echo -e "${CYAN}▶${NC} Installing ${YELLOW}$package${NC}..."
-            brew install "$package" > /dev/null 2>&1
+            run_command brew install "$package"
         fi
     done
 fi
@@ -203,7 +215,7 @@ print_separator
 print_step "Checking Oh My Zsh installation..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     print_step "Installing Oh My Zsh..."
-    RUNZSH=yes CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" > /dev/null 2>&1
+    RUNZSH=no CHSH=no run_command sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     print_success "Oh My Zsh installed successfully!"
 else
     print_info "Oh My Zsh is already installed."
@@ -227,7 +239,7 @@ for plugin_info in "${plugins[@]}"; do
     
     if [ ! -d "$ZSH_CUSTOM_DIR/plugins/$plugin_name" ]; then
         echo -e "  ${CYAN}▶${NC} Installing ${YELLOW}$plugin_name${NC}..."
-        git clone "$plugin_url" "$ZSH_CUSTOM_DIR/plugins/$plugin_name" > /dev/null 2>&1
+        run_command git clone "$plugin_url" "$ZSH_CUSTOM_DIR/plugins/$plugin_name"
         print_success "  $plugin_name installed!"
     else
         print_info "  $plugin_name is already installed."
