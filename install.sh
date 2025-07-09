@@ -135,6 +135,8 @@ install_essential_packages "$OS"
 
 ZSH_CUSTOM_DIR=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
 
+# -----------------------------------------------------------------------------
+
 # install brew
 print_step "Checking Homebrew installation..."
 if ! command -v brew &> /dev/null; then
@@ -154,6 +156,8 @@ else
 fi
 
 print_separator
+# -----------------------------------------------------------------------------
+
 print_step "Installing essential packages..."
 
 # Verify brew is now available
@@ -169,18 +173,26 @@ packages=(
     "television" "uutils-coreutils" "ugrep" "yq" "zoxide"
 )
 
-total=${#packages[@]}
-current=0
+print_step "Installing ${#packages[@]} packages..."
+echo -e "${CYAN}Installing:${NC} ${YELLOW}${packages[*]}${NC}"
 
-for package in "${packages[@]}"; do
-    current=$((current + 1))
-    echo -e "${CYAN}[$current/$total]${NC} Installing ${YELLOW}$package${NC}..."
-    brew install "$package" > /dev/null 2>&1
-done
-
-print_success "All packages installed successfully!"
+if brew install "${packages[@]}" > /dev/null 2>&1; then
+    print_success "All packages installed successfully!"
+else
+    print_error "Some packages failed to install. Trying individual installation..."
+    
+    # Fallback to individual installation for failed packages
+    for package in "${packages[@]}"; do
+        if ! brew list "$package" &>/dev/null; then
+            echo -e "${CYAN}▶${NC} Installing ${YELLOW}$package${NC}..."
+            brew install "$package" > /dev/null 2>&1
+        fi
+    done
+fi
 
 print_separator
+# -----------------------------------------------------------------------------
+
 print_step "Checking Zsh installation..."
 if ! command -v zsh &> /dev/null; then
     print_step "Installing Zsh..."
@@ -191,6 +203,8 @@ else
 fi
 
 print_separator
+# -----------------------------------------------------------------------------
+
 print_step "Checking Oh My Zsh installation..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     print_step "Installing Oh My Zsh..."
@@ -202,6 +216,8 @@ fi
 
 
 print_separator
+# -----------------------------------------------------------------------------
+
 print_step "Installing Oh My Zsh plugins..."
 
 plugins=(
@@ -237,6 +253,8 @@ if command -v omz &> /dev/null; then
 fi
 
 print_separator
+# -----------------------------------------------------------------------------
+
 echo ""
 print_success "🎉 Dotfiles installation completed successfully!"
 echo ""
