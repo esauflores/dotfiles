@@ -140,7 +140,7 @@ install_essential_packages() {
                 print_success "Essential packages installed successfully!"
             else
                 print_info "All essential packages are already installed."
-            fij
+            fi
             ;;
         "macos")
             print_step "Checking Xcode Command Line Tools for macOS..."
