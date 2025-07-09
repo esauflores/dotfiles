@@ -126,38 +126,21 @@ install_essential_packages() {
             
             # Check if essential packages are installed
             missing_packages=()
-            essential_packages=("gcc" "gcc-c++" "make" "git" "curl" "wget" "which" "zsh")
-            
+            essential_packages=("gcc" "make" "git" "curl" "wget" "gnupg" "zsh" "util-linux-user")
+
             for package in "${essential_packages[@]}"; do
                 if ! rpm -q "$package" &>/dev/null; then
                     missing_packages+=("$package")
                 fi
             done
-            
-            # Check if Development Tools group is installed
-            if ! dnf group list installed | grep -q "Development Tools"; then
-                missing_packages+=("@development-tools")
-            fi
-            
+
             if [ ${#missing_packages[@]} -gt 0 ]; then
                 echo -e "${YELLOW}Missing packages:${NC} ${missing_packages[*]}"
-                if [[ " ${missing_packages[*]} " =~ " @development-tools " ]]; then
-                    run_command sudo dnf groupinstall -y "Development Tools"
-                fi
-                # Install remaining individual packages (excluding the group)
-                individual_packages=()
-                for pkg in "${missing_packages[@]}"; do
-                    if [ "$pkg" != "@development-tools" ]; then
-                        individual_packages+=("$pkg")
-                    fi
-                done
-                if [ ${#individual_packages[@]} -gt 0 ]; then
-                    run_command sudo dnf install -y "${individual_packages[@]}"
-                fi
+                run_command sudo dnf install -y "${missing_packages[@]}"
                 print_success "Essential packages installed successfully!"
             else
                 print_info "All essential packages are already installed."
-            fi
+            fij
             ;;
         "macos")
             print_step "Checking Xcode Command Line Tools for macOS..."
