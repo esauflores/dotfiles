@@ -90,6 +90,7 @@ install_essential_packages() {
             if ! dpkg -l | grep -q build-essential; then
                 sudo apt-get update > /dev/null 2>&1
                 sudo apt-get install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release > /dev/null 2>&1
+                sudo apt-get install -y zsh > /dev/null 2>&1
                 print_success "Essential packages installed successfully!"
             else
                 print_info "Essential packages are already installed."
@@ -100,6 +101,7 @@ install_essential_packages() {
             if ! rpm -qa | grep -q gcc; then
                 sudo dnf groupinstall -y "Development Tools" > /dev/null 2>&1
                 sudo dnf install -y git curl wget which > /dev/null 2>&1
+                sudo dnf install -y zsh > /dev/null 2>&1
                 print_success "Essential packages installed successfully!"
             else
                 print_info "Essential packages are already installed."
@@ -193,18 +195,6 @@ else
             brew install "$package" > /dev/null 2>&1
         fi
     done
-fi
-
-print_separator
-# -----------------------------------------------------------------------------
-
-print_step "Checking Zsh installation..."
-if ! command -v zsh &> /dev/null; then
-    print_step "Installing Zsh..."
-    brew install zsh > /dev/null 2>&1
-    print_success "Zsh installed successfully!"
-else
-    print_info "Zsh is already installed."
 fi
 
 print_separator
