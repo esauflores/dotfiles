@@ -33,10 +33,12 @@ print_box() {
     # Calculate padding to center the message
     local box_width=62
     # Remove color codes and count actual visible characters
-    local clean_message=$(echo -e "$message" | sed 's/\x1b\[[0-9;]*m//g')
+    local clean_message
+    clean_message=$(echo -e "$message" | sed 's/\x1b\[[0-9;]*m//g')
     
     # Use wc -m to count multibyte characters properly, then adjust for emoji visual width
-    local char_count=$(echo -n "$clean_message" | wc -m)
+    local char_count
+    char_count=$(echo -n "$clean_message" | wc -m)
     local visual_length=$char_count
     
     case "$clean_message" in
@@ -99,24 +101,62 @@ install_essential_packages() {
     case "$os" in
         "ubuntu")
             print_step "Installing essential packages for Ubuntu/Debian..."
-            if ! dpkg -l | grep -q build-essential; then
+            
+            # Check if essential packages are installed
+            missing_packages=()
+            essential_packages=("build-essential" "git" "curl" "wget" "software-properties-common" "apt-transport-https" "ca-certificates" "gnupg" "lsb-release" "zsh")
+            
+            for package in "${essential_packages[@]}"; do
+                if ! dpkg -s "$package" &>/dev/null; then
+                    missing_packages+=("$package")
+                fi
+            done
+            
+            if [ ${#missing_packages[@]} -gt 0 ]; then
+                echo -e "${YELLOW}Missing packages:${NC} ${missing_packages[*]}"
                 run_command sudo apt update
-                run_command sudo apt install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release
-                run_command sudo apt install -y zsh
+                run_command sudo apt install -y "${missing_packages[@]}"
                 print_success "Essential packages installed successfully!"
             else
-                print_info "Essential packages are already installed."
+                print_info "All essential packages are already installed."
             fi
             ;;
         "fedora")
             print_step "Installing essential packages for Fedora/RHEL..."
-            if ! rpm -qa | grep -q gcc; then
-                run_command sudo dnf groupinstall -y "Development Tools"
-                run_command sudo dnf install -y git curl wget which
-                run_command sudo dnf install -y zsh
+            
+            # Check if essential packages are installed
+            missing_packages=()
+            essential_packages=("gcc" "gcc-c++" "make" "git" "curl" "wget" "which" "zsh")
+            
+            for package in "${essential_packages[@]}"; do
+                if ! rpm -q "$package" &>/dev/null; then
+                    missing_packages+=("$package")
+                fi
+            done
+            
+            # Check if Development Tools group is installed
+            if ! dnf group list installed | grep -q "Development Tools"; then
+                missing_packages+=("@development-tools")
+            fi
+            
+            if [ ${#missing_packages[@]} -gt 0 ]; then
+                echo -e "${YELLOW}Missing packages:${NC} ${missing_packages[*]}"
+                if [[ " ${missing_packages[*]} " =~ " @development-tools " ]]; then
+                    run_command sudo dnf groupinstall -y "Development Tools"
+                fi
+                # Install remaining individual packages (excluding the group)
+                individual_packages=()
+                for pkg in "${missing_packages[@]}"; do
+                    if [ "$pkg" != "@development-tools" ]; then
+                        individual_packages+=("$pkg")
+                    fi
+                done
+                if [ ${#individual_packages[@]} -gt 0 ]; then
+                    run_command sudo dnf install -y "${individual_packages[@]}"
+                fi
                 print_success "Essential packages installed successfully!"
             else
-                print_info "Essential packages are already installed."
+                print_info "All essential packages are already installed."
             fi
             ;;
         "macos")
@@ -152,7 +192,18 @@ print_step "Current user: $CURRENT_USER"
 print_separator
 install_essential_packages "$OS"
 
-ZSH_CUSTOM_DIR=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+# Set up Homebrew PATH if it exists but isn't in PATH
+if [[ "$OS" == "macos" ]]; then
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+else
+    if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+fi
 
 # -----------------------------------------------------------------------------
 
@@ -221,6 +272,9 @@ else
     print_info "Oh My Zsh is already installed."
 fi
 
+# Set ZSH_CUSTOM_DIR after Oh My Zsh is installed
+ZSH_CUSTOM_DIR=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+
 
 print_separator
 # -----------------------------------------------------------------------------
@@ -250,13 +304,32 @@ print_success "All plugins installed successfully!"
 
 
 # copy the custom dotfiles to the home directory
-cp -rf "$SCRIPT_DIR/bling"  "$HOME/bling"
-cp -f "$SCRIPT_DIR/zsh/.zshrc" "$HOME/.zshrc"
+print_separator
+print_step "Copying custom dotfiles to home directory..."
 
+if [ -d "$SCRIPT_DIR/bling" ]; then
+    if cp -rf "$SCRIPT_DIR/bling" "$HOME/"; then
+        print_success "Copied bling directory to home directory"
+    else
+        print_error "Failed to copy bling directory"
+    fi
+else
+    print_info "bling directory not found in script directory"
+fi
 
-# Reload Oh My Zsh if it's installed
-if command -v omz &> /dev/null; then
-    omz reload
+if [ -f "$SCRIPT_DIR/zsh/.zshrc" ]; then
+    if cp -f "$SCRIPT_DIR/zsh/.zshrc" "$HOME/.zshrc"; then
+        print_success "Copied .zshrc to home directory"
+    else
+        print_error "Failed to copy .zshrc"
+    fi
+else
+    print_info ".zshrc file not found in script directory"
+fi
+
+# Reload Oh My Zsh if it's installed (this will only work in a new shell session)
+if [ -d "$HOME/.oh-my-zsh" ] && command -v zsh &> /dev/null; then
+    print_info "Oh My Zsh configuration updated. Changes will take effect in new shell sessions."
 fi
 
 print_separator
