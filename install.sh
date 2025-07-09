@@ -53,9 +53,9 @@ print_box() {
     local padding=$(( (box_width - visual_length) / 2 ))
     local right_padding=$(( box_width - visual_length - padding ))
     
-    echo -e "${color}╔══════════════════════════════════════════════════════════════╗${NC}"
-    printf "${color}║${NC}%*s${text_color}%s${NC}%*s${color}║${NC}\n" $padding "" "$message" $right_padding ""
-    echo -e "${color}╚══════════════════════════════════════════════════════════════╝${NC}\n"
+    echo -e "${color}════════════════════════════════════════════════════════════════${NC}"
+    printf "${color} ${NC}%*s${text_color}%s${NC}%*s${color}${NC}\n" $padding "" "$message" $right_padding ""
+    echo -e "${color}════════════════════════════════════════════════════════════════${NC}\n"
 }
 
 print_step() {
