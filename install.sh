@@ -88,9 +88,9 @@ install_essential_packages() {
         "ubuntu")
             print_step "Installing essential packages for Ubuntu/Debian..."
             if ! dpkg -l | grep -q build-essential; then
-                sudo apt-get update > /dev/null 2>&1
-                sudo apt-get install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release > /dev/null 2>&1
-                sudo apt-get install -y zsh > /dev/null 2>&1
+                sudo apt update > /dev/null 2>&1
+                sudo apt install -y build-essential git curl wget software-properties-common apt-transport-https ca-certificates gnupg lsb-release > /dev/null 2>&1
+                sudo apt install -y zsh > /dev/null 2>&1
                 print_success "Essential packages installed successfully!"
             else
                 print_info "Essential packages are already installed."
