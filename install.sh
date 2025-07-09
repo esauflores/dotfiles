@@ -130,6 +130,11 @@ print_box "🚀 DOTFILES INSTALLER" "$CYAN" "$PURPLE"
 OS=$(detect_os)
 print_step "Detected OS: $OS"
 
+# print current user
+
+CURRENT_USER=$(whoami)
+print_step "Current user: $CURRENT_USER"
+
 print_separator
 install_essential_packages "$OS"
 
